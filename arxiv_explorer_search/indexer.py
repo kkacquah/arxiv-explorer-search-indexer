@@ -7,6 +7,9 @@ import zipfile
 import gzip
 import json
 import boto3
+
+
+
 """
 Runs scripts to unzip zipped ArXiv metadata, and add them to Arxiv Explorers
 Amazon ElasticSearch Service
@@ -14,7 +17,7 @@ Amazon ElasticSearch Service
 def index_compressed_files():
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(S3_BUCKET)
-    for compressed_metadata_filename in ucket.objects.all():
+    for compressed_metadata_filename in bucket.objects.all():
         bulk_index_body = index_compressed_file(obj.get()['Body'])
         post_entry_to_elastic_search(bulk_index_body)
 """
@@ -97,3 +100,6 @@ returns: ElasticSearch entry string with information from *metadata*
 def convert_date_time_to_sql_format(date_string):
     sql_date = datetime.datetime.strptime(date_string, DATE_FORMAT)
     return sql_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+if __name__ == "__main__":
+    index_compressed_files()

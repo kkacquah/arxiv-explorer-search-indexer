@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from flags import ES_ENDPOINT
 import requests
 
