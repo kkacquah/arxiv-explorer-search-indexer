@@ -1,4 +1,4 @@
-from arxiv_explorer_search.flags import ES_ENDPOINT
+from flags import ES_ENDPOINT
 import requests
 
 """
@@ -11,6 +11,5 @@ Args:
 
 def post_entry_to_elastic_search(bulk_index_body):
     headers = {'Content-Type': 'application/x-ndjson'}
-    print(bulk_index_body)
     response = requests.post(
         ES_ENDPOINT, data=bulk_index_body, headers=headers)

@@ -1,29 +1,28 @@
-from arxiv_explorer_search.flags import ES_ENDPOINT
-from arxiv_explorer_search.flags import FILEPATH
-from arxiv_explorer_search.flags import DATE_FORMAT
-from arxiv_explorer_search.elastic_search_client import post_entry_to_elastic_search
+from flags import S3_BUCKET
+from flags import DATE_FORMAT
+from flags import ES_ENDPOINT
+from elastic_search_client import post_entry_to_elastic_search
 import datetime
 import zipfile
 import gzip
 import json
-import glob
-
+import boto3
 """
 Runs scripts to unzip zipped ArXiv metadata, and add them to Arxiv Explorers
 Amazon ElasticSearch Service
 """
 def index_compressed_files():
-    glob_query = FILEPATH + "/*"
-    metadata_filenames = glob.glob(glob_query)
-    for compressed_metadata_filename in metadata_filenames:
-        bulk_index_body = index_compressed_file(compressed_metadata_filename)
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(S3_BUCKET)
+    for compressed_metadata_filename in ucket.objects.all():
+        bulk_index_body = index_compressed_file(obj.get()['Body'])
         post_entry_to_elastic_search(bulk_index_body)
 """
 Unzip zipped ArXiv metadata,
 and make post request to add to ES index
 """
-def index_compressed_file(compressed_metadata_filename):
-    metadata_objects = unzip(compressed_metadata_filename)
+def index_compressed_file(compressed_metadata):
+    metadata_objects = unzip(compressed_metadata)
     entry_strings = [get_entry_string(metadata) for metadata in metadata_objects]
     return '\n'.join(entry_strings) + '\n'
 
