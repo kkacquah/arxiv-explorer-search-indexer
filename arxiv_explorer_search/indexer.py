@@ -2,6 +2,7 @@ from flags import S3_BUCKET
 from flags import DATE_FORMAT
 from flags import ES_ENDPOINT
 from elastic_search_client import post_entry_to_elastic_search
+from progressbar import ProgressBar
 import datetime
 import zipfile
 import gzip
@@ -17,8 +18,10 @@ Amazon ElasticSearch Service
 def index_compressed_files():
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(S3_BUCKET)
-    for compressed_metadata_filename in bucket.objects.all():
-        bulk_index_body = index_compressed_file(obj.get()['Body'])
+    pbar = ProgressBar() #So we know how long this takes
+    print("Indexing metadata objects:")
+    for compressed_metadata_object in pbar(bucket.objects.all()):
+        bulk_index_body = index_compressed_file(compressed_metadata_object.get()['Body'])
         post_entry_to_elastic_search(bulk_index_body)
 """
 Unzip zipped ArXiv metadata,
