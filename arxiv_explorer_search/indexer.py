@@ -86,7 +86,7 @@ returns: ElasticSearch entry string with information from *metadata*
 def create_es_entry(metadata):
     es_entry = dict()
     fields = dict()
-    fields["published_date"] = convert_date_time_to_sql_format(metadata["timestamp"])
+    fields["published_date"] = convert_date_string_to_timestamp(metadata["timestamp"])
     fields["title"] = metadata["title"]
     fields["abstract"] = metadata["abstract"]
     es_entry["fields"] =fields
@@ -100,7 +100,7 @@ Args:
 
 returns: ElasticSearch entry string with information from *metadata*
 """
-def convert_date_time_to_timestamp(date_string):
+def convert_date_string_to_timestamp(date_string):
     date = datetime.datetime.strptime(date_string, DATE_FORMAT)
     return date.timestamp()
 
