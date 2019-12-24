@@ -20,7 +20,7 @@ def index_compressed_files():
     bucket = s3.Bucket(S3_BUCKET)
     pbar = ProgressBar() #So we know how long this takes
     print("Indexing metadata objects:")
-    for compressed_metadata_object in pbar(bucket.objects.all()):
+    for compressed_metadata_object in pbar(list(bucket.objects.all())):
         bulk_index_body = index_compressed_file(compressed_metadata_object.get()['Body'])
         post_entry_to_elastic_search(bulk_index_body)
 """
@@ -100,9 +100,9 @@ Args:
 
 returns: ElasticSearch entry string with information from *metadata*
 """
-def convert_date_time_to_sql_format(date_string):
-    sql_date = datetime.datetime.strptime(date_string, DATE_FORMAT)
-    return sql_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+def convert_date_time_to_timestamp(date_string):
+    date = datetime.datetime.strptime(date_string, DATE_FORMAT)
+    return date.timestamp()
 
 if __name__ == "__main__":
     index_compressed_files()
