@@ -1,6 +1,5 @@
-from flags import S3_BUCKET
-from flags import DATE_FORMAT
-from flags import ES_ENDPOINT
+from config import S3_BUCKET
+from config import ES_ENDPOINT
 from elastic_search_client import post_entry_to_elastic_search
 from progressbar import ProgressBar
 import datetime
@@ -101,7 +100,8 @@ Args:
 returns: ElasticSearch entry string with information from *metadata*
 """
 def convert_date_string_to_timestamp(date_string):
-    date = datetime.datetime.strptime(date_string, DATE_FORMAT)
+    arxiv_date_format = '%a, %d %b %Y %H:%M:%S %Z'
+    date = datetime.datetime.strptime(date_string, arxiv_date_format)
     return date.timestamp()
 
 if __name__ == "__main__":

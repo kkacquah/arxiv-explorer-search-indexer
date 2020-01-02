@@ -1,2 +1,9 @@
 # Environments
 venv/
+# Local Test Files
+Files/
+#Config
+arxiv_explorer_search/config.py
+#Pycache
+*.pyc
+*.pyo
