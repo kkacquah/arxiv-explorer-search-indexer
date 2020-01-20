@@ -1,6 +1,6 @@
 from config import S3_BUCKET
 from config import ES_ENDPOINT
-from elastic_search_client import post_entry_to_elastic_search
+from elastic_search_client import post_entry_to_elastic_search, put_mapping_to_elastic_search
 from progressbar import ProgressBar
 import datetime
 import zipfile
@@ -9,6 +9,7 @@ import json
 import boto3
 
 
+INDEX_NAME = "arxiv_documents"
 
 """
 Runs scripts to unzip zipped ArXiv metadata, and add them to Arxiv Explorers
@@ -17,11 +18,17 @@ Amazon ElasticSearch Service
 def index_compressed_files():
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(S3_BUCKET)
-    pbar = ProgressBar() #So we know how long this takes
+
+    print("Setting up index mapping")
+    put_mapping_to_elastic_search(generateMapping())
+
+    pbar = ProgressBar() #So we know how long this takes    
     print("Indexing metadata objects:")
     for compressed_metadata_object in pbar(list(bucket.objects.all())):
         bulk_index_body = index_compressed_file(compressed_metadata_object.get()['Body'])
         post_entry_to_elastic_search(bulk_index_body)
+    
+
 """
 Unzip zipped ArXiv metadata,
 and make post request to add to ES index
@@ -68,7 +75,7 @@ returns: index key string with information from *id*
 def create_index_key(id):
     index_key = dict()
     index_value = dict()
-    index_value["_index"] = "arxiv_documents"
+    index_value["_index"] = INDEX_NAME
     index_value["_type"] = "arxiv_document"
     index_value["_id"] = id
     index_key["index"] =index_value
@@ -103,6 +110,24 @@ def convert_date_string_to_timestamp(date_string):
     arxiv_date_format = '%a, %d %b %Y %H:%M:%S %Z'
     date = datetime.datetime.strptime(date_string, arxiv_date_format)
     return date.timestamp()
+
+"""
+Define ES mapping
+"""
+def generateMapping():
+    fields = {"mappings": 
+                {"arxiv_document": 
+                    {"properties": {
+                        "abstract": {"type": "string"},
+                        "title": { "type": "string"  }, 
+                        "published":  {
+                            "type": "date", 
+                            "format": "strict_date_optional_time||epoch_millis"
+                            }
+                        }
+                    }
+                }
+    }
 
 if __name__ == "__main__":
     index_compressed_files()
