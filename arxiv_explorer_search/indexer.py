@@ -20,7 +20,7 @@ def index_compressed_files():
     bucket = s3.Bucket(S3_BUCKET)
 
     print("Setting up index mapping")
-    put_mapping_to_elastic_search(generateMapping())
+    put_mapping_to_elastic_search(generateMapping(), INDEX_NAME)
 
     pbar = ProgressBar() #So we know how long this takes    
     print("Indexing metadata objects:")
@@ -109,25 +109,35 @@ returns: ElasticSearch entry string with information from *metadata*
 def convert_date_string_to_timestamp(date_string):
     arxiv_date_format = '%a, %d %b %Y %H:%M:%S %Z'
     date = datetime.datetime.strptime(date_string, arxiv_date_format)
-    return date.timestamp()
+    return int(date.timestamp())
 
 """
 Define ES mapping
 """
 def generateMapping():
-    fields = {"mappings": 
-                {"arxiv_document": 
-                    {"properties": {
-                        "abstract": {"type": "string"},
-                        "title": { "type": "string"  }, 
-                        "published":  {
-                            "type": "date", 
-                            "format": "strict_date_optional_time||epoch_millis"
+    mappingBody = {
+        "mappings": {
+            "arxiv_document": {
+                "properties": {
+                    "fields": {
+                        "properties": {
+                            "abstract": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "published_date": {
+                                "type": "date",
+                                "format": "epoch_second"
                             }
                         }
                     }
                 }
+            }
+        }
     }
+    return json.dumps(mappingBody)
 
 if __name__ == "__main__":
     index_compressed_files()
